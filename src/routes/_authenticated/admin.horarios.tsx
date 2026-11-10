@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { PageTitle } from "@/components/admin/shared";
+import { LunchBreaks } from "@/components/admin/LunchBreaks";
 import { businessHoursQuery } from "@/lib/booking/queries";
 import { saveBusinessHours } from "@/lib/booking/repo";
 import { shopHours, timeToMinutes } from "@/lib/booking/schedule";
@@ -19,9 +20,9 @@ export const Route = createFileRoute("/_authenticated/admin/horarios")({
   head: () => ({
     meta: [
       { title: "Horários de funcionamento · Painel Genario Souza" },
-      { name: "description", content: "Defina os dias e horários de funcionamento da barbearia." },
+      { name: "description", content: "Defina os dias, horários de funcionamento e o almoço de cada barbeiro." },
       { property: "og:title", content: "Horários de funcionamento · Painel Genario Souza" },
-      { property: "og:description", content: "Defina os dias e horários de funcionamento da barbearia." },
+      { property: "og:description", content: "Defina os dias, horários de funcionamento e o almoço de cada barbeiro." },
     ],
   }),
   component: HoursPage,
@@ -91,6 +92,8 @@ function HoursPage() {
       <p className="mt-4 text-xs text-muted-foreground">
         Os horários são oferecidos a cada 30 minutos, respeitando a duração dos serviços escolhidos.
       </p>
+
+      <LunchBreaks />
     </>
   );
 }

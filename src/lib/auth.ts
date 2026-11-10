@@ -23,13 +23,6 @@ export const adminStatusQuery = queryOptions({
   },
 });
 
-/** Only succeeds while the barbershop has no admin yet. */
-export async function claimFirstAdmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc("claim_first_admin");
-  if (error) throw new Error(error.message);
-  return Boolean(data);
-}
-
 /** Keeps redirects on this site and inside the admin area. */
 export function safeAdminRedirect(value: unknown): string {
   if (typeof value === "string" && value.startsWith("/admin") && !value.startsWith("//")) return value;

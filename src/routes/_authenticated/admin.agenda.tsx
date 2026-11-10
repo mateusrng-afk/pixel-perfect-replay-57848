@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageTitle, StatusBadge } from "@/components/admin/shared";
-import { appointmentsQuery, barbersQuery, businessHoursQuery, servicesQuery } from "@/lib/booking/queries";
-import { hoursForDate, minutesToTime, timeToMinutes, toDateKey, SLOT_STEP_MINUTES } from "@/lib/booking/schedule";
+import { appointmentsQuery, barbersQuery, businessHoursQuery } from "@/lib/booking/queries";
+import { hoursForBarber, hoursForDate, minutesToTime, timeToMinutes, toDateKey, SLOT_STEP_MINUTES } from "@/lib/booking/schedule";
 import { brl, capitalize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/agenda")({
+export const Route = createFileRoute("/_authenticated/admin/agenda")({
   head: () => ({
     meta: [
       { title: "Agenda dos barbeiros · Painel Genario Souza" },
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/admin/agenda")({
 function AgendaPage() {
   const barbers = useQuery(barbersQuery);
   const hours = useQuery(businessHoursQuery);
-  const services = useQuery(servicesQuery);
   const [barberId, setBarberId] = useState<string>();
   const [date, setDate] = useState(() => new Date());
 
@@ -40,7 +39,7 @@ function AgendaPage() {
   const dateKey = toDateKey(date);
   const appts = useQuery({ ...appointmentsQuery({ barberId, date: dateKey }), enabled: Boolean(barberId) });
   const active = (appts.data ?? []).filter((a) => a.status !== "cancelled");
-  const day = hours.data ? hoursForDate(hours.data, date) : undefined;
+  const day = hours.data && barberId ? hoursForDate(hoursForBarber(hours.data, barberId), date) : undefined;
 
   const rows = useMemo(() => {
     if (!day || day.is_closed) return [];
@@ -56,8 +55,6 @@ function AgendaPage() {
     return out;
   }, [day, active]);
 
-  const serviceNames = (ids: string[]) =>
-    ids.map((id) => services.data?.find((s) => s.id === id)?.name ?? "?").join(", ");
   const dayTotal = active.reduce((s, a) => s + a.total_price, 0);
 
   return (
@@ -123,7 +120,7 @@ function AgendaPage() {
                       <p className="truncate text-sm font-semibold">
                         {r.appt.start_time}–{r.appt.end_time} · {r.appt.client_name}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">{serviceNames(r.appt.service_ids)}</p>
+                      <p className="truncate text-xs text-muted-foreground">{r.appt.service_names.join(", ")}</p>
                     </div>
                     <StatusBadge status={r.appt.status} />
                   </div>

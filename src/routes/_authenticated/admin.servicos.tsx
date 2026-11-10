@@ -13,10 +13,11 @@ import { PageTitle } from "@/components/admin/shared";
 import { barberServicesQuery, barbersQuery, servicesQuery } from "@/lib/booking/queries";
 import { saveService, setServiceBarbers } from "@/lib/booking/repo";
 import type { Barber, Service } from "@/lib/booking/types";
+import { barbersForService } from "@/lib/booking/schedule";
 import { brl, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/servicos")({
+export const Route = createFileRoute("/_authenticated/admin/servicos")({
   head: () => ({
     meta: [
       { title: "Serviços e preços · Painel Genario Souza" },
@@ -61,7 +62,7 @@ function ServicesPage() {
             key={s.id}
             service={s}
             barbers={barbers.data ?? []}
-            barberIds={(links.data ?? []).filter((l) => l.service_id === s.id).map((l) => l.barber_id)}
+            barberIds={barbersForService(s.id, links.data ?? [], (barbers.data ?? []).map((b) => b.id))}
           />
         ))}
       </div>
@@ -105,6 +106,7 @@ function ServiceEditor({
         duration_minutes: Number(duration),
       });
       if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Dados inválidos");
+      if (!selectedBarbers.length) throw new Error("Escolha pelo menos um barbeiro.");
       const saved = await saveService({ id: service?.id, ...parsed.data, active });
       await setServiceBarbers(saved.id, selectedBarbers);
     },

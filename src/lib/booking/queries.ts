@@ -17,3 +17,8 @@ export const appointmentsQuery = (filter: AppointmentFilter = {}) =>
     queryKey: ["appointments", filter],
     queryFn: () => repo.listAppointments(filter),
   });
+export const busyTimesQuery = (barberId: string, date: string) =>
+  queryOptions({
+    queryKey: ["busy", barberId, date],
+    queryFn: () => repo.listBusyTimes(barberId, date),
+  });

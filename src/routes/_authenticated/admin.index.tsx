@@ -19,13 +19,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageTitle, StatusBadge, useSetStatus } from "@/components/admin/shared";
-import { appointmentsQuery, barbersQuery, servicesQuery } from "@/lib/booking/queries";
+import { appointmentsQuery, barbersQuery } from "@/lib/booking/queries";
 import { fromDateKey, toDateKey } from "@/lib/booking/schedule";
 import type { Appointment, AppointmentStatus } from "@/lib/booking/types";
 import { brl, whatsappLink } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
       { title: "Agendamentos · Painel Genario Souza" },
@@ -47,11 +47,8 @@ function AppointmentsPage() {
   const today = toDateKey(new Date());
   const appts = useQuery(appointmentsQuery());
   const barbers = useQuery(barbersQuery);
-  const services = useQuery(servicesQuery);
 
   const barberName = (id: string) => barbers.data?.find((b) => b.id === id)?.name ?? "—";
-  const serviceNames = (ids: string[]) =>
-    ids.map((id) => services.data?.find((s) => s.id === id)?.name ?? "?").join(", ");
 
   const all = appts.data ?? [];
   const todays = all.filter((a) => a.date === today && a.status !== "cancelled");
@@ -112,6 +109,7 @@ function AppointmentsPage() {
             <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value="pending">Pendentes</SelectItem>
             <SelectItem value="confirmed">Confirmados</SelectItem>
+            <SelectItem value="completed">Concluídos</SelectItem>
             <SelectItem value="cancelled">Cancelados</SelectItem>
           </SelectContent>
         </Select>
@@ -147,7 +145,7 @@ function AppointmentsPage() {
                     key={a.id}
                     appt={a}
                     barber={barberName(a.barber_id)}
-                    services={serviceNames(a.service_ids)}
+                    services={a.service_names.join(", ")}
                   />
                 ))}
               </div>
@@ -203,7 +201,7 @@ function AppointmentCard({ appt, barber, services }: { appt: Appointment; barber
         <p className="font-display text-xl font-bold">{brl(appt.total_price)}</p>
       </div>
 
-      {appt.status !== "cancelled" && (
+      {(appt.status === "pending" || appt.status === "confirmed") && (
         <div className="mt-4 flex gap-2 border-t pt-3">
           {appt.status === "pending" && (
             <Button

@@ -16,7 +16,7 @@ import type { Barber, Service } from "@/lib/booking/types";
 import { brl, formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/servicos")({
+export const Route = createFileRoute("/_authenticated/admin/servicos")({
   head: () => ({
     meta: [
       { title: "Serviços e preços · Painel Genario Souza" },

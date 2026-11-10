@@ -25,7 +25,7 @@ import type { Appointment, AppointmentStatus } from "@/lib/booking/types";
 import { brl, whatsappLink } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
       { title: "Agendamentos · Painel Genario Souza" },

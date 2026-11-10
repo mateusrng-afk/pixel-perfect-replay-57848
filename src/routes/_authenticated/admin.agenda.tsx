@@ -14,7 +14,7 @@ import { hoursForDate, minutesToTime, timeToMinutes, toDateKey, SLOT_STEP_MINUTE
 import { brl, capitalize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/agenda")({
+export const Route = createFileRoute("/_authenticated/admin/agenda")({
   head: () => ({
     meta: [
       { title: "Agenda dos barbeiros · Painel Genario Souza" },

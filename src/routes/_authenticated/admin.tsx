@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { CalendarDays, Clock, ExternalLink, ListChecks, Scissors } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Painel · Barbearia Genario Souza" },

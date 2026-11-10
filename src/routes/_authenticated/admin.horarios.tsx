@@ -15,7 +15,7 @@ import type { BusinessHour } from "@/lib/booking/types";
 import { WEEKDAYS } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/horarios")({
+export const Route = createFileRoute("/_authenticated/admin/horarios")({
   head: () => ({
     meta: [
       { title: "Horários de funcionamento · Painel Genario Souza" },

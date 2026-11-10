@@ -1,6 +1,11 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { CalendarDays, Clock, ExternalLink, ListChecks, Scissors } from "lucide-react";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarDays, Clock, ExternalLink, ListChecks, Loader2, LogOut, Scissors, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { adminStatusQuery, claimFirstAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -24,7 +29,30 @@ const NAV = [
   { to: "/admin/horarios", label: "Horários", icon: Clock, exact: false },
 ] as const;
 
+function useSignOut() {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  return async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+}
+
 function AdminLayout() {
+  const status = useQuery(adminStatusQuery);
+  const signOut = useSignOut();
+
+  if (status.isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        <Loader2 className="mr-2 size-4 animate-spin" /> Carregando...
+      </div>
+    );
+  }
+  if (!status.data?.isAdmin) return <NoAccess email={status.data?.email ?? null} onSignOut={signOut} />;
+
   return (
     <div className="min-h-screen pb-24 md:pb-0">
       <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur-md">
@@ -45,12 +73,21 @@ function AdminLayout() {
               </Link>
             ))}
           </nav>
-          <Link
-            to="/"
-            className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground hover:text-gold"
-          >
-            Página do cliente <ExternalLink className="size-3.5" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground hover:text-gold"
+            >
+              <span className="hidden sm:inline">Página do cliente</span> <ExternalLink className="size-3.5" />
+            </Link>
+            <button
+              type="button"
+              onClick={signOut}
+              className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground hover:text-gold"
+            >
+              Sair <LogOut className="size-3.5" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -73,6 +110,44 @@ function AdminLayout() {
           </Link>
         ))}
       </nav>
+    </div>
+  );
+}
+
+function NoAccess({ email, onSignOut }: { email: string | null; onSignOut: () => void }) {
+  const qc = useQueryClient();
+  const claim = useMutation({
+    mutationFn: claimFirstAdmin,
+    onSuccess: (ok) => {
+      if (ok) {
+        toast.success("Acesso de administrador ativado");
+        qc.invalidateQueries();
+      } else {
+        toast.error("A barbearia já tem um administrador. Peça a ele para liberar seu acesso.");
+      }
+    },
+    onError: () => toast.error("Não foi possível ativar o acesso."),
+  });
+
+  return (
+    <div className="flex min-h-screen items-center justify-center px-5">
+      <div className="w-full max-w-sm rounded-2xl border border-gold/30 bg-card p-7 text-center shadow-card">
+        <ShieldCheck className="mx-auto size-9 text-gold" />
+        <h1 className="mt-3 text-3xl font-semibold">Acesso ao painel</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {email ? <>Você entrou como <strong className="text-foreground">{email}</strong>, </> : null}
+          mas esta conta ainda não é administradora.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Se esta é a primeira conta da barbearia, ative o acesso abaixo.
+        </p>
+        <Button variant="gold" size="xl" className="mt-6 w-full" disabled={claim.isPending} onClick={() => claim.mutate()}>
+          {claim.isPending && <Loader2 className="animate-spin" />} Ativar como administrador
+        </Button>
+        <Button variant="ghost" className="mt-2 w-full" onClick={onSignOut}>
+          Sair
+        </Button>
+      </div>
     </div>
   );
 }

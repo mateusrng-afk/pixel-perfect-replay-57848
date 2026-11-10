@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   mapAppointment,
   mapBarber,
+  mapBarberBreak,
   mapBusinessHour,
   mapService,
   shopDayStart,
@@ -14,9 +15,11 @@ import {
 } from "./mappers";
 import type {
   Appointment,
+  AppointmentEdit,
   AppointmentFilter,
   AppointmentStatus,
   Barber,
+  BarberBreak,
   BarberService,
   BusinessHour,
   BusyTime,
@@ -82,7 +85,7 @@ export class SlotUnavailableError extends Error {
 
 export class BookingError extends Error {}
 
-const SLOT_ERRORS = ["SLOT_TAKEN", "SLOT_IN_PAST", "OUTSIDE_HOURS"];
+const SLOT_ERRORS = ["SLOT_TAKEN", "SLOT_IN_PAST", "OUTSIDE_HOURS", "LUNCH_BREAK"];
 const BOOKING_MESSAGES: Record<string, string> = {
   INVALID_NAME: "Informe seu nome.",
   INVALID_PHONE: "Informe um telefone com DDD.",
@@ -166,4 +169,50 @@ export async function saveBusinessHours(hours: BusinessHour[]) {
     ),
   );
   for (const r of results) check(r.error);
+}
+
+/** Admin only (protected by database rules). */
+export async function listBarberBreaks(): Promise<BarberBreak[]> {
+  const { data, error } = await supabase.from("barber_breaks").select("*");
+  check(error);
+  return (data ?? []).map(mapBarberBreak);
+}
+
+/** Saves one barber's lunch break; `null` removes it. Other barbers are untouched. */
+export async function saveBarberBreak(barberId: string, period: { start_time: string; end_time: string } | null) {
+  if (!period) {
+    const { error } = await supabase.from("barber_breaks").delete().eq("barber_id", barberId);
+    check(error);
+    return;
+  }
+  const { data, error } = await supabase
+    .from("barber_breaks")
+    .upsert({ barber_id: barberId, start_time: period.start_time, end_time: period.end_time })
+    .select("barber_id");
+  check(error);
+  if (!data?.length) throw new Error("Sem permissão para alterar o almoço.");
+}
+
+const EDIT_MESSAGES: Record<string, string> = {
+  FORBIDDEN: "Sem permissão para editar agendamentos.",
+  NOT_FOUND: "Agendamento não encontrado.",
+  APPOINTMENT_CANCELLED: "Agendamentos cancelados não podem ser editados.",
+  INVALID_BARBER: "Esse barbeiro não está disponível.",
+  INVALID_SERVICES: "Escolha serviços que esse barbeiro faz.",
+  SLOT_TAKEN: "Esse horário já está ocupado para esse barbeiro.",
+  SLOT_IN_PAST: "Esse horário já passou.",
+  OUTSIDE_HOURS: "Fora do horário de funcionamento desse barbeiro.",
+  LUNCH_BREAK: "Esse horário cai no almoço do barbeiro.",
+};
+
+/** Admin only: change date, time, barber and services; the database recomputes price and checks the slot. */
+export async function updateAppointment(input: AppointmentEdit) {
+  const { error } = await supabase.rpc("admin_update_appointment", {
+    _id: input.id,
+    _barber_id: input.barber_id,
+    _day: input.date,
+    _start_time: input.start_time,
+    _service_ids: input.service_ids,
+  });
+  if (error) throw new BookingError(EDIT_MESSAGES[error.message] ?? "Não foi possível salvar a alteração.");
 }

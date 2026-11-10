@@ -33,7 +33,13 @@ export function useSetStatus() {
     mutationFn: ({ id, status }: { id: string; status: AppointmentStatus }) =>
       setAppointmentStatus(id, status),
     onSuccess: (_d, v) => {
-      toast.success(v.status === "confirmed" ? "Agendamento confirmado" : "Agendamento cancelado");
+      toast.success(
+        v.status === "confirmed"
+          ? "Agendamento confirmado"
+          : v.status === "completed"
+            ? "Cliente marcado como atendido"
+            : "Agendamento cancelado",
+      );
       qc.invalidateQueries({ queryKey: ["appointments"] });
     },
     onError: (e) => toast.error(e instanceof Error && e.message ? e.message : "Não foi possível atualizar."),

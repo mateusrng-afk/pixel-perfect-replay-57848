@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageTitle, StatusBadge } from "@/components/admin/shared";
-import { appointmentsQuery, barbersQuery, businessHoursQuery } from "@/lib/booking/queries";
+import { appointmentsQuery, barberBreaksQuery, barbersQuery, businessHoursQuery } from "@/lib/booking/queries";
 import { hoursForBarber, hoursForDate, minutesToTime, timeToMinutes, toDateKey, SLOT_STEP_MINUTES } from "@/lib/booking/schedule";
 import { brl, capitalize } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/admin/agenda")({
 function AgendaPage() {
   const barbers = useQuery(barbersQuery);
   const hours = useQuery(businessHoursQuery);
+  const breaks = useQuery(barberBreaksQuery);
   const [barberId, setBarberId] = useState<string>();
   const [date, setDate] = useState(() => new Date());
 
@@ -41,19 +42,24 @@ function AgendaPage() {
   const active = (appts.data ?? []).filter((a) => a.status !== "cancelled");
   const day = hours.data && barberId ? hoursForDate(hoursForBarber(hours.data, barberId), date) : undefined;
 
+  const lunch = breaks.data?.find((b) => b.barber_id === barberId);
+
   const rows = useMemo(() => {
     if (!day || day.is_closed) return [];
-    const out: { time: string; appt: (typeof active)[number] | undefined; continued: boolean }[] = [];
+    const out: { time: string; appt: (typeof active)[number] | undefined; continued: boolean; lunch: boolean }[] = [];
     for (let t = timeToMinutes(day.open_time); t < timeToMinutes(day.close_time); t += SLOT_STEP_MINUTES) {
       const startAppt = active.find((a) => {
         const s = timeToMinutes(a.start_time);
         return s >= t && s < t + SLOT_STEP_MINUTES;
       });
       const covering = active.find((a) => timeToMinutes(a.start_time) < t && timeToMinutes(a.end_time) > t);
-      out.push({ time: minutesToTime(t), appt: startAppt, continued: !startAppt && Boolean(covering) });
+      const inLunch = Boolean(
+        lunch && t < timeToMinutes(lunch.end_time) && timeToMinutes(lunch.start_time) < t + SLOT_STEP_MINUTES,
+      );
+      out.push({ time: minutesToTime(t), appt: startAppt, continued: !startAppt && Boolean(covering), lunch: inLunch });
     }
     return out;
-  }, [day, active]);
+  }, [day, active, lunch]);
 
   const dayTotal = active.reduce((s, a) => s + a.total_price, 0);
 
@@ -126,6 +132,10 @@ function AgendaPage() {
                   </div>
                 ) : r.continued ? (
                   <div className="h-full rounded-md border-l-2 border-gold/40 bg-accent/50" />
+                ) : r.lunch ? (
+                  <p className="flex h-full items-center rounded-md bg-muted px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Almoço · {lunch?.start_time}–{lunch?.end_time}
+                  </p>
                 ) : (
                   <p className="px-2 py-1.5 text-xs text-muted-foreground/60">Livre</p>
                 )}

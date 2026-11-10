@@ -29,6 +29,13 @@ export interface BusinessHour {
   is_closed: boolean;
 }
 
+/** A barber's daily lunch break, "HH:mm". Blocks bookings on every open day. */
+export interface BarberBreak {
+  barber_id: string;
+  start_time: string;
+  end_time: string;
+}
+
 export interface Appointment {
   id: string;
   barber_id: string;
@@ -68,4 +75,12 @@ export interface AppointmentFilter {
   barberId?: string | undefined;
   date?: string | undefined;
   fromDate?: string | undefined;
+}
+
+export interface AppointmentEdit {
+  id: string;
+  barber_id: string;
+  date: string;
+  start_time: string;
+  service_ids: string[];
 }

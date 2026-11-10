@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   availableSlots,
+  breakAsBusy,
+  busyForEdit,
   barbersForService,
   hoursForBarber,
   servicesForBarber,
@@ -101,5 +103,44 @@ describe("serviços por barbeiro", () => {
     const links = [{ barber_id: "mateus", service_id: "luzes" }];
     expect(servicesForBarber(services, links, "genario")).toEqual([{ id: "corte" }]);
     expect(servicesForBarber(services, links, "mateus")).toEqual(services);
+  });
+});
+
+describe("almoço do barbeiro", () => {
+  const breaks = [
+    { barber_id: "genario", start_time: "12:00", end_time: "13:00" },
+    { barber_id: "mateus", start_time: "13:00", end_time: "14:00" },
+  ];
+
+  it("horários do almoço não são oferecidos", () => {
+    const slots = availableSlots({ date: monday, hours: HOURS, appointments: breakAsBusy(breaks, "genario"), duration: 30, now: longAgo });
+    expect(slots).not.toContain("12:00");
+    expect(slots).not.toContain("12:30");
+    expect(slots).toContain("11:30");
+    expect(slots).toContain("13:00");
+  });
+
+  it("serviço que terminaria dentro do almoço não é oferecido", () => {
+    const slots = availableSlots({ date: monday, hours: HOURS, appointments: breakAsBusy(breaks, "genario"), duration: 60, now: longAgo });
+    expect(slots).not.toContain("11:30");
+    expect(slots).toContain("11:00");
+  });
+
+  it("o almoço de um barbeiro não afeta os outros", () => {
+    const slots = availableSlots({ date: monday, hours: HOURS, appointments: breakAsBusy(breaks, "mateus"), duration: 30, now: longAgo });
+    expect(slots).toContain("12:00");
+    expect(slots).not.toContain("13:00");
+  });
+
+  it("ao editar, o próprio agendamento não bloqueia o novo horário", () => {
+    const appts = [
+      { id: "a1", barber_id: "genario", start_time: "09:00", end_time: "10:00", status: "pending" as const },
+      { id: "a2", barber_id: "genario", start_time: "10:00", end_time: "10:30", status: "confirmed" as const },
+    ];
+    const busyList = busyForEdit({ appointments: appts, breaks, barberId: "genario", excludeId: "a1" });
+    const slots = availableSlots({ date: monday, hours: HOURS, appointments: busyList, duration: 60, now: longAgo });
+    expect(slots).toContain("09:00");
+    expect(slots).not.toContain("09:30");
+    expect(slots).not.toContain("11:30");
   });
 });

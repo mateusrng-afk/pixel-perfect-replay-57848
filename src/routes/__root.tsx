@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { CHUNK_RELOAD_SCRIPT, isChunkLoadError, reloadAfterChunkError } from "../lib/chunk-reload";
 
 function NotFoundComponent() {
   return (
@@ -40,9 +41,12 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const chunkError = isChunkLoadError(error);
   useEffect(() => {
+    // A page file failed to download: a fresh load is the only fix.
+    if (chunkError && reloadAfterChunkError()) return;
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  }, [error, chunkError]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -56,6 +60,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (chunkError) {
+                window.location.reload();
+                return;
+              }
               router.invalidate();
               reset();
             }}
@@ -118,6 +126,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: CHUNK_RELOAD_SCRIPT }} />
         <HeadContent />
       </head>
       <body>

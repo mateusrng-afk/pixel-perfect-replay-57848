@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- All booking data access goes through `src/lib/booking/repo.ts` (async functions) and query options in `src/lib/booking/queries.ts`; UI never touches storage directly, so the data source can be swapped without UI changes.
+- Slot availability and price math live as pure functions in `src/lib/booking/schedule.ts`, covered by `schedule.test.ts`; change rules there, not in components.
+- Admin pages are separate routes under `/admin/*` sharing the `admin.tsx` layout.

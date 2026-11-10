@@ -34,5 +34,5 @@ use the editor.
 - Clients book only via the `book_appointment` DB function (computes price/duration, validates hours) and read availability via `get_busy_times`; double booking is blocked by the `appointments_no_overlap` exclusion constraint, so never add a direct client insert path.
 - Appointment times are stored as timestamptz and shown in America/Maceio (fixed -03:00, no DST).
 - A service with no `barber_services` rows is offered by every barber (same rule in SQL and `schedule.ts`).
-- Admin pages live under `src/routes/_authenticated/admin*` (URL `/admin/*`, shared `admin.tsx` layout); admin rights come from `user_roles` + `has_role`, never from client state.
+- Admin pages live under `src/routes/_authenticated/admin*` (URL `/admin/*`, shared `admin.tsx` layout); admin rights come from `user_roles` + `has_role`, never from client state; roles are granted only through database migrations (no self-claim path), so no account can promote itself.
 - Slot availability and price math live as pure functions in `src/lib/booking/schedule.ts`, covered by `schedule.test.ts`; change rules there, not in components.

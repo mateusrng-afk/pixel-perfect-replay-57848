@@ -61,6 +61,35 @@ export type Database = {
           },
         ]
       }
+      barber_breaks: {
+        Row: {
+          barber_id: string
+          end_time: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          barber_id: string
+          end_time: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          barber_id?: string
+          end_time?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barber_breaks_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: true
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barber_services: {
         Row: {
           barber_id: string
@@ -206,9 +235,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_update_appointment: {
+        Args: {
+          _barber_id: string
+          _day: string
+          _id: string
+          _service_ids: string[]
+          _start_time: string
+        }
+        Returns: Json
+      }
       appointment_period: {
         Args: { _minutes: number; _start: string }
         Returns: unknown
+      }
+      appointment_quote: {
+        Args: { _barber_id: string; _service_ids: string[] }
+        Returns: {
+          duration: number
+          price: number
+          services: Json
+        }[]
+      }
+      assert_barber_slot: {
+        Args: {
+          _barber_id: string
+          _day: string
+          _duration: number
+          _start: string
+        }
+        Returns: undefined
       }
       book_appointment: {
         Args: {

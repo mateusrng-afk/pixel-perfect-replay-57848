@@ -54,7 +54,7 @@ export interface NewAppointment {
 }
 
 export interface AppointmentFilter {
-  barberId?: string;
-  date?: string;
-  fromDate?: string;
+  barberId?: string | undefined;
+  date?: string | undefined;
+  fromDate?: string | undefined;
 }

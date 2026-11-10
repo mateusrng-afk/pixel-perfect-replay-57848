@@ -34,7 +34,7 @@ function AgendaPage() {
   const [date, setDate] = useState(() => new Date());
 
   useEffect(() => {
-    if (!barberId && barbers.data?.length) setBarberId(barbers.data[0].id);
+    if (!barberId && barbers.data?.length) setBarberId(barbers.data[0]?.id);
   }, [barbers.data, barberId]);
 
   const dateKey = toDateKey(date);
@@ -44,7 +44,7 @@ function AgendaPage() {
 
   const rows = useMemo(() => {
     if (!day || day.is_closed) return [];
-    const out: { time: string; appt?: (typeof active)[number]; continued?: boolean }[] = [];
+    const out: { time: string; appt: (typeof active)[number] | undefined; continued: boolean }[] = [];
     for (let t = timeToMinutes(day.open_time); t < timeToMinutes(day.close_time); t += SLOT_STEP_MINUTES) {
       const startAppt = active.find((a) => {
         const s = timeToMinutes(a.start_time);

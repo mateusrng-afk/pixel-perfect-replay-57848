@@ -3,8 +3,8 @@ import type { Appointment, BusinessHour, Service } from "./types";
 export const SLOT_STEP_MINUTES = 30;
 
 export function timeToMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + (m || 0);
+  const [h = 0, m = 0] = time.split(":").map(Number);
+  return h * 60 + m;
 }
 
 export function minutesToTime(total: number): string {
@@ -21,7 +21,7 @@ export function toDateKey(date: Date): string {
 }
 
 export function fromDateKey(key: string): Date {
-  const [y, m, d] = key.split("-").map(Number);
+  const [y = 1970, m = 1, d = 1] = key.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 

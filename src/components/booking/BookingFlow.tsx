@@ -30,6 +30,7 @@ import {
 import { createAppointment, SlotUnavailableError } from "@/lib/booking/repo";
 import {
   availableSlots,
+  fromDateKey,
   isClosedOn,
   toDateKey,
   totalDuration,
@@ -520,8 +521,7 @@ function SuccessCard({
   serviceNames: string[];
   onReset: () => void;
 }) {
-  const [y, m, d] = appointment.date.split("-").map(Number);
-  const when = format(new Date(y, m - 1, d), "EEEE, d 'de' MMMM", { locale: ptBR });
+  const when = format(fromDateKey(appointment.date), "EEEE, d 'de' MMMM", { locale: ptBR });
   return (
     <div className="animate-fade-up mx-auto max-w-md rounded-2xl border border-gold/40 bg-card p-8 text-center shadow-gold">
       <CheckCircle2 className="mx-auto size-14 text-gold" />

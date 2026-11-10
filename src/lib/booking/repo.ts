@@ -120,7 +120,7 @@ export async function setAppointmentStatus(id: string, status: AppointmentStatus
   write(store);
 }
 
-export async function saveService(service: Omit<Service, "id"> & { id?: string }): Promise<Service> {
+export async function saveService(service: Omit<Service, "id"> & { id?: string | undefined }): Promise<Service> {
   const store = read();
   if (service.id) {
     const saved = service as Service;

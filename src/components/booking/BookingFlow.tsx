@@ -481,7 +481,7 @@ function StepBlock({
   );
 }
 
-function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string }) {
+function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string | undefined }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className="flex items-center gap-2 text-muted-foreground">

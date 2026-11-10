@@ -104,7 +104,7 @@ function ServiceEditor({
         price: Number(price.replace(",", ".")),
         duration_minutes: Number(duration),
       });
-      if (!parsed.success) throw new Error(parsed.error.issues[0].message);
+      if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Dados inválidos");
       const saved = await saveService({ id: service?.id, ...parsed.data, active });
       await setServiceBarbers(saved.id, selectedBarbers);
     },

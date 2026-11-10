@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PageTitle, StatusBadge } from "@/components/admin/shared";
 import { appointmentsQuery, barbersQuery, businessHoursQuery, servicesQuery } from "@/lib/booking/queries";
 import { hoursForDate, minutesToTime, timeToMinutes, toDateKey, SLOT_STEP_MINUTES } from "@/lib/booking/schedule";
-import { brl } from "@/lib/format";
+import { brl, capitalize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/agenda")({
@@ -85,9 +85,9 @@ function AgendaPage() {
         </Button>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="flex-1 justify-center bg-card capitalize sm:flex-none sm:min-w-64">
+            <Button variant="outline" className="flex-1 justify-center bg-card sm:flex-none sm:min-w-64">
               <CalendarDays className="text-gold" />
-              {format(date, "EEEE, d 'de' MMMM", { locale: ptBR })}
+              {capitalize(format(date, "EEEE, d 'de' MMMM", { locale: ptBR }))}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="center">

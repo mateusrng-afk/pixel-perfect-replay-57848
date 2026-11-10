@@ -134,6 +134,7 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-variant-numeric: lining-nums;
     -webkit-font-smoothing: antialiased;
   }
 

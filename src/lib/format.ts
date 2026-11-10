@@ -37,3 +37,7 @@ export const WEEKDAYS = [
   "Sexta-feira",
   "Sábado",
 ];
+
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

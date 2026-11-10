@@ -37,7 +37,7 @@ import {
   totalPrice,
 } from "@/lib/booking/schedule";
 import type { Appointment } from "@/lib/booking/types";
-import { brl, formatDuration, maskPhone, phoneDigits } from "@/lib/format";
+import { brl, capitalize, formatDuration, maskPhone, phoneDigits } from "@/lib/format";
 
 const STEPS = ["Barbeiro", "Serviços", "Data e horário", "Seus dados"] as const;
 const MAX_DAYS_AHEAD = 60;
@@ -328,8 +328,8 @@ export function BookingFlow() {
                   </EmptyHint>
                 ) : (
                   <>
-                    <p className="mb-3 text-sm capitalize text-muted-foreground">
-                      {format(date, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      {capitalize(format(date, "EEEE, d 'de' MMMM", { locale: ptBR }))}
                     </p>
                     <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                       {slots.map((t) => (
@@ -395,7 +395,7 @@ export function BookingFlow() {
                   <SummaryRow
                     icon={<CalendarDays className="size-4" />}
                     label="Data"
-                    value={date ? format(date, "EEE, dd/MM/yyyy", { locale: ptBR }) : "-"}
+                    value={date ? capitalize(format(date, "EEE, dd/MM/yyyy", { locale: ptBR })) : "-"}
                   />
                   <SummaryRow
                     icon={<Clock className="size-4" />}
@@ -441,7 +441,7 @@ export function BookingFlow() {
             </Button>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">
+            <p className="truncate text-xs text-muted-foreground">
               {selected.length
                 ? `${selected.length} serviço${selected.length > 1 ? "s" : ""} · ${formatDuration(duration)}`
                 : "Total"}
@@ -455,7 +455,13 @@ export function BookingFlow() {
             onClick={next}
           >
             {book.isPending && <Loader2 className="animate-spin" />}
-            {step === STEPS.length - 1 ? "Confirmar agendamento" : "Continuar"}
+            {step === STEPS.length - 1 ? (
+              <>
+                Confirmar<span className="hidden sm:inline"> agendamento</span>
+              </>
+            ) : (
+              "Continuar"
+            )}
           </Button>
         </div>
       </div>
@@ -488,7 +494,7 @@ function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: stri
         <span className="text-gold">{icon}</span>
         {label}
       </dt>
-      <dd className="font-semibold capitalize">{value ?? "-"}</dd>
+      <dd className="text-right font-semibold">{value ?? "-"}</dd>
     </div>
   );
 }
@@ -521,7 +527,7 @@ function SuccessCard({
   serviceNames: string[];
   onReset: () => void;
 }) {
-  const when = format(fromDateKey(appointment.date), "EEEE, d 'de' MMMM", { locale: ptBR });
+  const when = capitalize(format(fromDateKey(appointment.date), "EEEE, d 'de' MMMM", { locale: ptBR }));
   return (
     <div className="animate-fade-up mx-auto max-w-md rounded-2xl border border-gold/40 bg-card p-8 text-center shadow-gold">
       <CheckCircle2 className="mx-auto size-14 text-gold" />
@@ -533,7 +539,7 @@ function SuccessCard({
       <div className="gold-rule my-6" />
       <dl className="space-y-2 text-left text-sm">
         <div className="flex justify-between"><dt className="text-muted-foreground">Barbeiro</dt><dd className="font-semibold">{barberName}</dd></div>
-        <div className="flex justify-between"><dt className="text-muted-foreground">Data</dt><dd className="font-semibold capitalize">{when}</dd></div>
+        <div className="flex justify-between"><dt className="text-muted-foreground">Data</dt><dd className="font-semibold">{when}</dd></div>
         <div className="flex justify-between"><dt className="text-muted-foreground">Horário</dt><dd className="font-semibold">{appointment.start_time} – {appointment.end_time}</dd></div>
         <div className="flex justify-between gap-4"><dt className="text-muted-foreground">Serviços</dt><dd className="text-right font-semibold">{serviceNames.join(", ")}</dd></div>
         <div className="flex justify-between pt-2"><dt className="text-muted-foreground">Total</dt><dd className="font-display text-2xl font-bold text-gold">{brl(appointment.total_price)}</dd></div>

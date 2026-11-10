@@ -221,7 +221,6 @@ export type Database = {
         }
         Returns: Json
       }
-      claim_first_admin: { Args: never; Returns: boolean }
       get_busy_times: {
         Args: { _barber_id: string; _day: string }
         Returns: {

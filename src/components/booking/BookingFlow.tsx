@@ -21,9 +21,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
-  appointmentsQuery,
   barberServicesQuery,
   barbersQuery,
+  busyTimesQuery,
   businessHoursQuery,
   servicesQuery,
 } from "@/lib/booking/queries";
@@ -31,7 +31,9 @@ import { createAppointment, SlotUnavailableError } from "@/lib/booking/repo";
 import {
   availableSlots,
   fromDateKey,
+  hoursForBarber,
   isClosedOn,
+  servicesForBarber,
   toDateKey,
   totalDuration,
   totalPrice,
@@ -72,17 +74,19 @@ export function BookingFlow() {
 
   const dateKey = date ? toDateKey(date) : undefined;
   const dayAppointments = useQuery({
-    ...appointmentsQuery({ barberId, date: dateKey }),
+    ...busyTimesQuery(barberId ?? "", dateKey ?? ""),
     enabled: Boolean(barberId && dateKey),
   });
+  const barberHours = useMemo(
+    () => (hours.data && barberId ? hoursForBarber(hours.data, barberId) : undefined),
+    [hours.data, barberId],
+  );
 
   const barber = barbers.data?.find((b) => b.id === barberId);
 
   const offered = useMemo(() => {
     const all = (services.data ?? []).filter((s) => s.active);
-    if (!barberId || !links.data) return all;
-    const ids = new Set(links.data.filter((l) => l.barber_id === barberId).map((l) => l.service_id));
-    return ids.size ? all.filter((s) => ids.has(s.id)) : all;
+    return servicesForBarber(all, links.data ?? [], barberId);
   }, [services.data, links.data, barberId]);
 
   const selected = offered.filter((s) => serviceIds.includes(s.id));
@@ -90,14 +94,15 @@ export function BookingFlow() {
   const duration = totalDuration(selected);
 
   const slots = useMemo(() => {
-    if (!date || !hours.data || !dayAppointments.data) return [];
-    return availableSlots({ date, hours: hours.data, appointments: dayAppointments.data, duration });
-  }, [date, hours.data, dayAppointments.data, duration]);
+    if (!date || !barberHours || !dayAppointments.data) return [];
+    return availableSlots({ date, hours: barberHours, appointments: dayAppointments.data, duration });
+  }, [date, barberHours, dayAppointments.data, duration]);
 
   const book = useMutation({
     mutationFn: createAppointment,
     onSuccess: (appt) => {
       setConfirmed(appt);
+      qc.invalidateQueries({ queryKey: ["busy"] });
       qc.invalidateQueries({ queryKey: ["appointments"] });
     },
     onError: (err) => {
@@ -105,9 +110,9 @@ export function BookingFlow() {
         toast.error(err.message);
         setTime(undefined);
         setStep(2);
-        qc.invalidateQueries({ queryKey: ["appointments"] });
+        qc.invalidateQueries({ queryKey: ["busy"] });
       } else {
-        toast.error("Não foi possível confirmar. Tente novamente.");
+        toast.error(err instanceof Error && err.message ? err.message : "Não foi possível confirmar. Tente novamente.");
       }
     },
   });
@@ -304,7 +309,7 @@ export function BookingFlow() {
                     setTime(undefined);
                   }}
                   disabled={(d) =>
-                    d < today || d > lastDay || (hours.data ? isClosedOn(hours.data, d) : true)
+                    d < today || d > lastDay || (barberHours ? isClosedOn(barberHours, d) : true)
                   }
                   startMonth={today}
                   endMonth={lastDay}

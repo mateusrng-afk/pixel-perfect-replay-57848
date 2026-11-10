@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { PageTitle } from "@/components/admin/shared";
 import { businessHoursQuery } from "@/lib/booking/queries";
 import { saveBusinessHours } from "@/lib/booking/repo";
-import { timeToMinutes } from "@/lib/booking/schedule";
+import { shopHours, timeToMinutes } from "@/lib/booking/schedule";
 import type { BusinessHour } from "@/lib/booking/types";
 import { WEEKDAYS } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ function HoursPage() {
   const [draft, setDraft] = useState<BusinessHour[]>([]);
 
   useEffect(() => {
-    if (hours.data) setDraft(hours.data);
+    if (hours.data) setDraft(shopHours(hours.data));
   }, [hours.data]);
 
   const update = (day: number, patch: Partial<BusinessHour>) =>
@@ -55,11 +55,11 @@ function HoursPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao salvar"),
   });
 
-  const dirty = JSON.stringify(draft) !== JSON.stringify(hours.data ?? []);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(shopHours(hours.data ?? []));
 
   return (
     <>
-      <PageTitle title="Horários" subtitle="Dias e horários em que a barbearia aceita agendamentos.">
+      <PageTitle title="Horários" subtitle="Dias e horários em que a barbearia aceita agendamentos. Valem para todos os barbeiros.">
         <Button variant="gold" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
           {save.isPending ? <Loader2 className="animate-spin" /> : <Save />} Salvar alterações
         </Button>

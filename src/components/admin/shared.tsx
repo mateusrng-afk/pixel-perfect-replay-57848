@@ -7,6 +7,7 @@ import type { AppointmentStatus } from "@/lib/booking/types";
 export const STATUS_LABEL: Record<AppointmentStatus, string> = {
   pending: "Pendente",
   confirmed: "Confirmado",
+  completed: "Concluído",
   cancelled: "Cancelado",
 };
 
@@ -17,6 +18,7 @@ export function StatusBadge({ status }: { status: AppointmentStatus }) {
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[0.7rem] font-semibold uppercase tracking-wider",
         status === "pending" && "border-warning/40 bg-warning/10 text-warning",
         status === "confirmed" && "border-success/40 bg-success/10 text-success",
+        status === "completed" && "border-gold/40 bg-gold/10 text-gold",
         status === "cancelled" && "border-destructive/40 bg-destructive/10 text-destructive",
       )}
     >
@@ -34,7 +36,7 @@ export function useSetStatus() {
       toast.success(v.status === "confirmed" ? "Agendamento confirmado" : "Agendamento cancelado");
       qc.invalidateQueries({ queryKey: ["appointments"] });
     },
-    onError: () => toast.error("Não foi possível atualizar."),
+    onError: (e) => toast.error(e instanceof Error && e.message ? e.message : "Não foi possível atualizar."),
   });
 }
 

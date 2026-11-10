@@ -1,4 +1,4 @@
-import type { Appointment, BusinessHour, Service } from "./types";
+import type { BarberService, BusinessHour, BusyTime, Service } from "./types";
 
 export const SLOT_STEP_MINUTES = 30;
 
@@ -50,7 +50,7 @@ export function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: num
 export function isSlotTaken(
   start: number,
   duration: number,
-  appointments: Pick<Appointment, "start_time" | "end_time" | "status">[],
+  appointments: Pick<BusyTime, "start_time" | "end_time" | "status">[],
 ): boolean {
   const end = start + duration;
   return appointments.some(
@@ -67,7 +67,7 @@ export function isSlotTaken(
 export function availableSlots(params: {
   date: Date;
   hours: BusinessHour[];
-  appointments: Pick<Appointment, "start_time" | "end_time" | "status">[];
+  appointments: Pick<BusyTime, "start_time" | "end_time" | "status">[];
   duration: number;
   now?: Date;
   step?: number;
@@ -90,4 +90,45 @@ export function availableSlots(params: {
     slots.push(minutesToTime(t));
   }
   return slots;
+}
+
+/** A barber's weekly hours: their own rows, falling back to shop-wide rows (barber_id null). */
+export function hoursForBarber(hours: BusinessHour[], barberId: string): BusinessHour[] {
+  const own = hours.filter((h) => h.barber_id === barberId);
+  const shared = hours.filter(
+    (h) => h.barber_id === null && !own.some((o) => o.day_of_week === h.day_of_week),
+  );
+  return [...own, ...shared];
+}
+
+/** One row per weekday (0–6), used to show/edit the shop's hours as a whole. */
+export function shopHours(hours: BusinessHour[]): BusinessHour[] {
+  const out: BusinessHour[] = [];
+  for (let d = 0; d <= 6; d++) {
+    const h = hours.find((x) => x.day_of_week === d);
+    if (h) out.push(h);
+  }
+  return out;
+}
+
+/** A service with no barber links is offered by every barber. */
+export function servicesForBarber<T extends { id: string }>(
+  services: T[],
+  links: BarberService[],
+  barberId: string | undefined,
+): T[] {
+  if (!barberId) return services;
+  return services.filter((s) => {
+    const own = links.filter((l) => l.service_id === s.id);
+    return own.length === 0 || own.some((l) => l.barber_id === barberId);
+  });
+}
+
+export function barbersForService(
+  serviceId: string,
+  links: BarberService[],
+  allBarberIds: string[],
+): string[] {
+  const ids = links.filter((l) => l.service_id === serviceId).map((l) => l.barber_id);
+  return ids.length ? ids : allBarberIds;
 }

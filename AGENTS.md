@@ -36,3 +36,4 @@ use the editor.
 - A service with no `barber_services` rows is offered by every barber (same rule in SQL and `schedule.ts`).
 - Admin pages live under `src/routes/_authenticated/admin*` (URL `/admin/*`, shared `admin.tsx` layout); admin rights come from `user_roles` + `has_role`, never from client state; roles are granted only through database migrations (no self-claim path), so no account can promote itself.
 - Slot availability and price math live as pure functions in `src/lib/booking/schedule.ts`, covered by `schedule.test.ts`; change rules there, not in components.
+- Failed page-file downloads ("Importing a module script failed") recover via `src/lib/chunk-reload.ts`: inline head script + root error boundary do one full reload per 10s, because browsers cache failed imports and the app otherwise never starts.

@@ -1,4 +1,4 @@
-import type { BarberService, BusinessHour, BusyTime, Service } from "./types";
+import type { Appointment, BarberBreak, BarberService, BusinessHour, BusyTime, Service } from "./types";
 
 export const SLOT_STEP_MINUTES = 30;
 
@@ -131,4 +131,30 @@ export function barbersForService(
 ): string[] {
   const ids = links.filter((l) => l.service_id === serviceId).map((l) => l.barber_id);
   return ids.length ? ids : allBarberIds;
+}
+
+/** The barber's lunch break as a busy period (empty when none is set). */
+export function breakAsBusy(breaks: BarberBreak[], barberId: string): BusyTime[] {
+  return breaks
+    .filter((b) => b.barber_id === barberId)
+    .map((b) => ({ start_time: b.start_time, end_time: b.end_time, status: "confirmed" as const }));
+}
+
+/**
+ * Busy periods used when the admin moves an appointment: the barber's other
+ * active appointments that day plus their lunch. The edited one never blocks itself.
+ */
+export function busyForEdit(params: {
+  appointments: Pick<Appointment, "id" | "barber_id" | "start_time" | "end_time" | "status">[];
+  breaks: BarberBreak[];
+  barberId: string;
+  excludeId: string;
+}): BusyTime[] {
+  const { appointments, breaks, barberId, excludeId } = params;
+  return [
+    ...appointments
+      .filter((a) => a.id !== excludeId && a.barber_id === barberId && a.status !== "cancelled")
+      .map((a) => ({ start_time: a.start_time, end_time: a.end_time, status: a.status })),
+    ...breakAsBusy(breaks, barberId),
+  ];
 }

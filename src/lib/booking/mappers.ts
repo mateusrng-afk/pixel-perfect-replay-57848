@@ -1,7 +1,7 @@
 /** Pure conversions between database rows and app types. */
 import type { Tables } from "@/integrations/supabase/types";
 import { fromDateKey, minutesToTime, timeToMinutes, toDateKey } from "./schedule";
-import type { Appointment, AppointmentStatus, Barber, BusinessHour, Service } from "./types";
+import type { Appointment, AppointmentStatus, Barber, BarberBreak, BusinessHour, Service } from "./types";
 
 export const SHOP_TIME_ZONE = "America/Maceio";
 /** Maceió has no daylight saving time. */
@@ -89,4 +89,12 @@ export function mapService(row: Tables<"services">): Service {
 
 export function mapBarber(row: Pick<Tables<"barbers">, "id" | "name" | "active">): Barber {
   return { id: row.id, name: row.name, active: row.active ?? true };
+}
+
+export function mapBarberBreak(row: Tables<"barber_breaks">): BarberBreak {
+  return {
+    barber_id: row.barber_id,
+    start_time: row.start_time.slice(0, 5),
+    end_time: row.end_time.slice(0, 5),
+  };
 }

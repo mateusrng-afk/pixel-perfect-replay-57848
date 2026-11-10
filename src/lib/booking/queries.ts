@@ -22,3 +22,7 @@ export const busyTimesQuery = (barberId: string, date: string) =>
     queryKey: ["busy", barberId, date],
     queryFn: () => repo.listBusyTimes(barberId, date),
   });
+export const barberBreaksQuery = queryOptions({
+  queryKey: ["barber_breaks"],
+  queryFn: repo.listBarberBreaks,
+});

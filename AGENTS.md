@@ -30,6 +30,9 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Project rules
-- All booking data access goes through `src/lib/booking/repo.ts` (async functions) and query options in `src/lib/booking/queries.ts`; UI never touches storage directly, so the data source can be swapped without UI changes.
+- All booking data access goes through `src/lib/booking/repo.ts` (browser Supabase client, RLS applies) and query options in `src/lib/booking/queries.ts`; row-to-type conversion lives in `mappers.ts`. UI never queries the database directly.
+- Clients book only via the `book_appointment` DB function (computes price/duration, validates hours) and read availability via `get_busy_times`; double booking is blocked by the `appointments_no_overlap` exclusion constraint, so never add a direct client insert path.
+- Appointment times are stored as timestamptz and shown in America/Maceio (fixed -03:00, no DST).
+- A service with no `barber_services` rows is offered by every barber (same rule in SQL and `schedule.ts`).
+- Admin pages live under `src/routes/_authenticated/admin*` (URL `/admin/*`, shared `admin.tsx` layout); admin rights come from `user_roles` + `has_role`, never from client state.
 - Slot availability and price math live as pure functions in `src/lib/booking/schedule.ts`, covered by `schedule.test.ts`; change rules there, not in components.
-- Admin pages are separate routes under `/admin/*` sharing the `admin.tsx` layout.

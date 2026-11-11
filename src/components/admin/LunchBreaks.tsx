@@ -82,15 +82,11 @@ function LunchRow({ barber, current }: { barber: Barber; current: BarberBreak | 
       ) : (
         <span className="text-sm text-muted-foreground">Sem intervalo</span>
       )}
-      <Button
-        variant="gold"
-        size="sm"
-        className="ml-auto"
-        disabled={!dirty || save.isPending}
-        onClick={() => save.mutate()}
-      >
-        {save.isPending ? <Loader2 className="animate-spin" /> : <Save />} Salvar
-      </Button>
+      {dirty && (
+        <Button variant="gold" size="sm" className="ml-auto" disabled={save.isPending} onClick={() => save.mutate()}>
+          {save.isPending ? <Loader2 className="animate-spin" /> : <Save />} Salvar
+        </Button>
+      )}
     </div>
   );
 }

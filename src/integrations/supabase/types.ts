@@ -61,6 +61,41 @@ export type Database = {
           },
         ]
       }
+      barber_accounts: {
+        Row: {
+          active: boolean
+          barber_id: string
+          created_at: string
+          email: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          barber_id: string
+          created_at?: string
+          email: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          barber_id?: string
+          created_at?: string
+          email?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barber_accounts_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: true
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       barber_breaks: {
         Row: {
           barber_id: string
@@ -179,6 +214,39 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          phone_digits: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          phone_digits?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          phone_digits?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           active: boolean | null
@@ -235,16 +303,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_update_appointment: {
-        Args: {
-          _barber_id: string
-          _day: string
-          _id: string
-          _service_ids: string[]
-          _start_time: string
-        }
-        Returns: Json
-      }
+      admin_create_barber: { Args: { _name: string }; Returns: string }
       appointment_period: {
         Args: { _minutes: number; _start: string }
         Returns: unknown
@@ -277,6 +336,7 @@ export type Database = {
         }
         Returns: Json
       }
+      current_barber_id: { Args: never; Returns: string }
       get_busy_times: {
         Args: { _barber_id: string; _day: string }
         Returns: {
@@ -290,6 +350,17 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      is_staff: { Args: never; Returns: boolean }
+      staff_update_appointment: {
+        Args: {
+          _barber_id: string
+          _day: string
+          _id: string
+          _service_ids: string[]
+          _start_time: string
+        }
+        Returns: Json
       }
     }
     Enums: {

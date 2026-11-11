@@ -207,7 +207,7 @@ const EDIT_MESSAGES: Record<string, string> = {
 
 /** Admin only: change date, time, barber and services; the database recomputes price and checks the slot. */
 export async function updateAppointment(input: AppointmentEdit) {
-  const { error } = await supabase.rpc("admin_update_appointment", {
+  const { error } = await supabase.rpc("staff_update_appointment", {
     _id: input.id,
     _barber_id: input.barber_id,
     _day: input.date,

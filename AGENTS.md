@@ -32,7 +32,8 @@ use the editor.
 ## Project rules
 - All booking data access goes through `src/lib/booking/repo.ts` (browser Supabase client, RLS applies) and query options in `src/lib/booking/queries.ts`; row-to-type conversion lives in `mappers.ts`. UI never queries the database directly.
 - Each barber's lunch lives in `barber_breaks` (one daily interval per barber, admin-only RLS); `assert_barber_slot` enforces hours + lunch for both `book_appointment` and `admin_update_appointment`, and `get_busy_times` returns lunch as busy so the public page needs no extra read.
-- Admins edit appointments only via `admin_update_appointment` (security invoker + has_role check; recomputes price/duration, overlap still blocked by the exclusion constraint); status changes stay a direct RLS-guarded update.
+- Staff edit appointments only via `staff_update_appointment` (security definer; admin any, barber only own and cannot reassign; recomputes price/duration, overlap still blocked by the exclusion constraint); status changes stay a direct RLS-guarded update, and the `guard_appointment_update` trigger lets non-admins change only `status` directly.
+- Staff identity: `barber_accounts` links an auth user to one barber; `current_barber_id()` (active link + `barber` role) and `is_staff()` drive every per-barber RLS policy, so privacy is enforced in the database, not the UI.
 - Clients book only via the `book_appointment` DB function (computes price/duration, validates hours) and read availability via `get_busy_times`; double booking is blocked by the `appointments_no_overlap` exclusion constraint, so never add a direct client insert path.
 - Appointment times are stored as timestamptz and shown in America/Maceio (fixed -03:00, no DST).
 - A service with no `barber_services` rows is offered by every barber (same rule in SQL and `schedule.ts`).

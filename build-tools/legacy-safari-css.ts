@@ -108,7 +108,9 @@ function addChannelVars(root: postcss.Root): void {
 
 function rgbVarNames(root: postcss.Root): Set<string> {
   const names = new Set<string>();
-  root.walkDecls(/^--.*-rgb$/, (d) => names.add(d.prop.slice(0, -4)));
+  root.walkDecls(/^--.*-rgb$/, (d) => {
+    names.add(d.prop.slice(0, -4));
+  });
   return names;
 }
 

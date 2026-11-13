@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CHUNK_RELOAD_SCRIPT, isChunkLoadError, reloadAfterChunkError } from "../lib/chunk-reload";
+import { LEGACY_POLYFILL_SCRIPT } from "../lib/legacy-polyfills";
 
 function NotFoundComponent() {
   return (
@@ -126,6 +127,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: LEGACY_POLYFILL_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: CHUNK_RELOAD_SCRIPT }} />
         <HeadContent />
       </head>

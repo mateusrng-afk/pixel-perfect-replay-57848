@@ -8,7 +8,7 @@
 // hosting already compresses at the edge.
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { LEGACY_BUILD_TARGET, legacySafariCss } from "./build-tools/legacy-safari-css";
+import { LEGACY_BUILD_TARGET, LIGHTNING_TARGETS, legacySafariCss } from "./build-tools/legacy-safari-css";
 
 export default defineConfig({
   tanstackStart: {
@@ -19,6 +19,8 @@ export default defineConfig({
   vite: {
     // Safari / iOS 15 support (iPhone 7): see build-tools/legacy-safari-css.ts.
     plugins: [legacySafariCss()],
+    css: { lightningcss: { targets: LIGHTNING_TARGETS } },
+    build: { cssTarget: LEGACY_BUILD_TARGET },
     environments: {
       client: { build: { target: LEGACY_BUILD_TARGET, cssTarget: LEGACY_BUILD_TARGET } },
     },

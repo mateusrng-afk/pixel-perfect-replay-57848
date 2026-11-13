@@ -25,7 +25,8 @@ import type { Plugin as VitePlugin } from "vite";
 export const LEGACY_BUILD_TARGET = ["safari15", "ios15", "chrome87", "edge88", "firefox78"];
 
 const v = (major: number, minor = 0) => (major << 16) | (minor << 8);
-const LIGHTNING_TARGETS = { safari: v(15), ios_saf: v(15), chrome: v(87), edge: v(88), firefox: v(78) };
+/** Same browsers in Lightning CSS form (CSS compile + final minify must not re-modernize the output). */
+export const LIGHTNING_TARGETS = { safari: v(15), ios_saf: v(15), chrome: v(87), edge: v(88), firefox: v(78) };
 
 export const NO_COLOR_MIX = "not (color: color-mix(in lab, red, red))";
 export const NO_LAYERS = "not selector(:has(a))";

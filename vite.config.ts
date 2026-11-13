@@ -18,7 +18,7 @@ export default defineConfig({
   },
   vite: {
     // Safari / iOS 15 support (iPhone 7): see build-tools/legacy-safari-css.ts.
-    css: { postcss: { plugins: [legacySafariCss()] } },
+    plugins: [legacySafariCss()],
     environments: {
       client: { build: { target: LEGACY_BUILD_TARGET, cssTarget: LEGACY_BUILD_TARGET } },
     },

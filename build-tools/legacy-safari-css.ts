@@ -4,7 +4,7 @@
  *
  * Tailwind v4 targets Safari 16.4+. On older Safari the page loses its colors
  * (oklch, color-mix) and, on 15.0–15.3, every style (cascade layers). This
- * PostCSS step runs on the generated CSS in dev and build:
+ * step runs on the generated CSS in dev and build (Vite plugin below):
  *  1. adds `--name-rgb` channel variables next to opaque color variables;
  *  2. lowers syntax with Lightning CSS for Safari 15 (oklch -> lab, media
  *     range queries, nesting, -webkit- prefixes);
@@ -17,8 +17,9 @@
  *     (Safari < 15.4) still get the styles; browsers with `:has()` (all
  *     current ones) ignore the copy and keep the layered original.
  */
-import postcss, { type AtRule, type ChildNode, type Container, type Declaration, type Plugin, type Rule } from "postcss";
+import postcss, { type AtRule, type ChildNode, type Container, type Declaration, type Rule } from "postcss";
 import { transform } from "lightningcss";
+import type { Plugin as VitePlugin } from "vite";
 
 /** JS build target for the browser bundle: Safari/iOS 15 and equivalent engines. */
 export const LEGACY_BUILD_TARGET = ["safari15", "ios15", "chrome87", "edge88", "firefox78"];
@@ -211,16 +212,20 @@ export function lowerCssForLegacySafari(css: string, filename = "styles.css"): s
 
 const NEEDS_WORK = /@layer|oklch|color-mix|[sdl]vh\b|@media[^{]*[<>]=?/;
 
-/** PostCSS plugin used by Vite for every stylesheet (dev and production). */
-export function legacySafariCss(): Plugin {
+const CSS_ID = /\.css(?:$|\?)/;
+const SKIP_QUERY = /[?&](?:raw|inline-css|html-proxy)\b/;
+
+/**
+ * Vite plugin. The project compiles CSS with Lightning CSS (not PostCSS), so this
+ * runs as a normal-order transform: after Tailwind and Vite's CSS compile, before
+ * the stylesheet is bundled, hashed and minified.
+ */
+export function legacySafariCss(): VitePlugin {
   return {
-    postcssPlugin: "legacy-safari-css",
-    OnceExit(root) {
-      const css = root.toString();
-      if (!NEEDS_WORK.test(css)) return;
-      const out = postcss.parse(lowerCssForLegacySafari(css, root.source?.input.file ?? "styles.css"));
-      root.removeAll();
-      root.append(out.nodes);
+    name: "legacy-safari-css",
+    transform(code, id) {
+      if (!CSS_ID.test(id) || SKIP_QUERY.test(id) || !NEEDS_WORK.test(code)) return null;
+      return { code: lowerCssForLegacySafari(code, id.split("?")[0]), map: null };
     },
   };
 }

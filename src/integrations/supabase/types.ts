@@ -162,6 +162,7 @@ export type Database = {
           id: string
           name: string
           photo_url: string | null
+          whatsapp_phone: string | null
         }
         Insert: {
           active?: boolean | null
@@ -169,6 +170,7 @@ export type Database = {
           id?: string
           name: string
           photo_url?: string | null
+          whatsapp_phone?: string | null
         }
         Update: {
           active?: boolean | null
@@ -176,6 +178,7 @@ export type Database = {
           id?: string
           name?: string
           photo_url?: string | null
+          whatsapp_phone?: string | null
         }
         Relationships: []
       }
@@ -297,6 +300,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      whatsapp_notification_logs: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          error_message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          error_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          error_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_notification_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

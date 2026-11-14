@@ -7,4 +7,7 @@
 - [ ] Barbeiro no painel: agendamentos, agenda, horários e almoço só dele; serviços só leitura
 - [ ] Clientes (cadastro + consulta), Histórico, Relatórios de rendimentos
 - [ ] Testar admin + dois barbeiros (cada um vê só o seu)
+- [x] Excluir agendamento definitivamente (admin qualquer, barbeiro só os dele)
+- [x] Aviso de agendamento por WhatsApp (código + registro no banco)
+- [ ] (aberto) WhatsApp: segredos da Meta, modelo aprovado e números dos barbeiros — aguardando o cliente
 - [ ] (aberto) Endereço real da barbearia para o rodapé — aguardando o cliente

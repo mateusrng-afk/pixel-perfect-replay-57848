@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { addDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarDays, Check, ChevronLeft, ChevronRight, MessageCircle, Pencil, Phone, UserCheck, X } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight, MessageCircle, Pencil, Phone, Trash2, UserCheck, X } from "lucide-react";
 
 import {
   AlertDialog,
@@ -21,7 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EditAppointmentDialog } from "@/components/admin/EditAppointmentDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PageTitle, StatusBadge, useSetStatus } from "@/components/admin/shared";
+import { PageTitle, StatusBadge, useDeleteAppointment, useSetStatus } from "@/components/admin/shared";
 import { appointmentsQuery, barbersQuery } from "@/lib/booking/queries";
 import { fromDateKey, toDateKey } from "@/lib/booking/schedule";
 import type { Appointment, AppointmentStatus } from "@/lib/booking/types";
@@ -212,6 +212,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
 
 function AppointmentCard({ appt, barber, services }: { appt: Appointment; barber: string; services: string }) {
   const setStatus = useSetStatus();
+  const remove = useDeleteAppointment();
   const [editing, setEditing] = useState(false);
   const muted = appt.status === "cancelled";
   const open = appt.status === "pending" || appt.status === "confirmed";
@@ -303,6 +304,33 @@ function AppointmentCard({ appt, barber, services }: { appt: Appointment; barber
           )}
         </div>
       )}
+      <div className={cn("flex justify-end", appt.status === "cancelled" ? "mt-3 border-t pt-2" : "mt-2")}>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={remove.isPending}>
+              <Trash2 /> Excluir definitivamente
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir definitivamente?</AlertDialogTitle>
+              <AlertDialogDescription>
+                O agendamento de {appt.client_name} em {format(fromDateKey(appt.date), "dd/MM")} às {appt.start_time} será
+                apagado e não poderá ser recuperado. O cadastro do cliente continua salvo.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Voltar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => remove.mutate(appt.id)}
+              >
+                Excluir definitivamente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
       <EditAppointmentDialog appt={appt} open={editing} onOpenChange={setEditing} />
     </article>
   );

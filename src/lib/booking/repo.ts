@@ -4,6 +4,7 @@
  * computes price/duration and refuses overlapping times (also under concurrency).
  */
 import { supabase } from "@/integrations/supabase/client";
+import { notifyBookingWhatsApp } from "@/lib/whatsapp/notify.functions";
 import {
   mapAppointment,
   mapBarber,
@@ -114,6 +115,7 @@ export async function createAppointment(input: NewAppointment): Promise<Appointm
     total_price: number;
     total_duration: number;
   };
+  notifyBooking(r.id);
   return {
     ...input,
     id: r.id,
@@ -126,6 +128,15 @@ export async function createAppointment(input: NewAppointment): Promise<Appointm
     status: "pending",
     created_at: new Date().toISOString(),
   };
+}
+
+/** Fire-and-forget WhatsApp notice; a failure here never undoes or blocks the booking. */
+function notifyBooking(appointmentId: string) {
+  try {
+    notifyBookingWhatsApp({ data: { appointment_id: appointmentId } }).catch(() => undefined);
+  } catch {
+    // ignore: the booking is already saved
+  }
 }
 
 export async function setAppointmentStatus(id: string, status: AppointmentStatus) {
@@ -215,4 +226,15 @@ export async function updateAppointment(input: AppointmentEdit) {
     _service_ids: input.service_ids,
   });
   if (error) throw new BookingError(EDIT_MESSAGES[error.message] ?? "Não foi possível salvar a alteração.");
+}
+
+const DELETE_MESSAGES: Record<string, string> = {
+  FORBIDDEN: "Sem permissão para excluir este agendamento.",
+  NOT_FOUND: "Agendamento não encontrado. Ele pode já ter sido excluído.",
+};
+
+/** Staff only: deletes the appointment for good (admin any, barber only own). The client record stays. */
+export async function deleteAppointmentPermanently(id: string) {
+  const { error } = await supabase.rpc("staff_delete_appointment", { _id: id });
+  if (error) throw new BookingError(DELETE_MESSAGES[error.message] ?? "Não foi possível excluir o agendamento.");
 }

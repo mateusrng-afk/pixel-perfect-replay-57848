@@ -75,19 +75,19 @@ export const notifyBookingWhatsApp = createServerFn({ method: "POST" })
     };
 
     try {
-      const token = process.env.WHATSAPP_ACCESS_TOKEN;
-      const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+      const token = process.env['WHATSAPP_ACCESS_TOKEN'];
+      const phoneNumberId = process.env['WHATSAPP_PHONE_NUMBER_ID'];
       const missing = missingWhatsAppConfig({ token, phoneNumberId });
       if (missing.length) {
         await finish("failed", `CONFIG_PENDING: faltam os segredos ${missing.join(", ")}`);
         return { ok: false, reason: "config_pending" };
       }
 
-      const templateName = process.env.WHATSAPP_TEMPLATE_NAME || DEFAULT_TEMPLATE_NAME;
-      const apiVersion = process.env.WHATSAPP_API_VERSION || DEFAULT_API_VERSION;
+      const templateName = process.env['WHATSAPP_TEMPLATE_NAME'] || DEFAULT_TEMPLATE_NAME;
+      const apiVersion = process.env['WHATSAPP_API_VERSION'] || DEFAULT_API_VERSION;
       const barber = appt.barbers;
 
-      const recipients = uniqueRecipients([appt.client_phone, barber?.whatsapp_phone, process.env.WHATSAPP_ADMIN_PHONE]);
+      const recipients = uniqueRecipients([appt.client_phone, barber?.whatsapp_phone, process.env['WHATSAPP_ADMIN_PHONE']]);
       if (!recipients.length) {
         await finish("failed", "NO_RECIPIENTS: nenhum telefone válido");
         return { ok: false, reason: "no_recipients" };

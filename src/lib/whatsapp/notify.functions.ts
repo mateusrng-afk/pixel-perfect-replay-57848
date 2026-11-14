@@ -22,7 +22,7 @@ export type NotifyResult =
   | { ok: false; reason: "not_found" | "cancelled" | "already_handled" | "config_pending" | "no_recipients" | "send_failed" | "error" };
 
 export const notifyBookingWhatsApp = createServerFn({ method: "POST" })
-  .inputValidator((data: { appointment_id: string }) => {
+  .validator((data: { appointment_id: string }) => {
     if (!data || typeof data.appointment_id !== "string" || !UUID.test(data.appointment_id)) {
       throw new Error("invalid_appointment_id");
     }

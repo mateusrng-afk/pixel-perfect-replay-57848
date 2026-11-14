@@ -352,6 +352,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: never; Returns: boolean }
+      staff_delete_appointment: { Args: { _id: string }; Returns: undefined }
       staff_update_appointment: {
         Args: {
           _barber_id: string

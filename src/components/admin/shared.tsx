@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { setAppointmentStatus } from "@/lib/booking/repo";
+import { deleteAppointmentPermanently, setAppointmentStatus } from "@/lib/booking/repo";
 import type { AppointmentStatus } from "@/lib/booking/types";
 
 export const STATUS_LABEL: Record<AppointmentStatus, string> = {
@@ -43,6 +43,19 @@ export function useSetStatus() {
       qc.invalidateQueries({ queryKey: ["appointments"] });
     },
     onError: (e) => toast.error(e instanceof Error && e.message ? e.message : "Não foi possível atualizar."),
+  });
+}
+
+export function useDeleteAppointment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteAppointmentPermanently(id),
+    onSuccess: () => {
+      toast.success("Agendamento excluído definitivamente");
+      qc.invalidateQueries({ queryKey: ["appointments"] });
+      qc.invalidateQueries({ queryKey: ["busy"] });
+    },
+    onError: (e) => toast.error(e instanceof Error && e.message ? e.message : "Não foi possível excluir."),
   });
 }
 
